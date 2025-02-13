@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -16,7 +16,7 @@ const { width } = Dimensions.get('window');
 export default function OnboardingScreen() {
   const router = useRouter();
   const { isDark } = useTheme();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const handleGetStarted = () => {
     router.push('/location/country');

@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { countries } from '../../constants/countries';
 import { toTitleCaseUTF8 } from '../../utils/string';
+import { useTranslation } from 'react-i18next';
 
 interface City {
   SehirAdi: string;
@@ -41,6 +43,7 @@ export default function CityScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { t } = useTranslation();
 
   const selectedCountry = countries.find((c) => c.id === country);
 
@@ -84,7 +87,7 @@ export default function CityScreen() {
 
   if (loading) {
     return (
-      <View
+      <SafeAreaView
         style={[
           styles.container,
           styles.centered,
@@ -92,13 +95,13 @@ export default function CityScreen() {
         ]}
       >
         <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View
+      <SafeAreaView
         style={[
           styles.container,
           styles.centered,
@@ -118,15 +121,15 @@ export default function CityScreen() {
           onPress={fetchCities}
         >
           <Text style={[styles.retryText, { color: isDark ? '#fff' : '#000' }]}>
-            Retry
+            {t('retry')}
           </Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View
+    <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
     >
       <View style={styles.header}>
@@ -147,11 +150,11 @@ export default function CityScreen() {
             </Text>
           )}
           <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>
-            Şehrini Seç
+            {t('selectCity')}
           </Text>
         </View>
         <Text style={[styles.subtitle, { color: isDark ? '#ccc' : '#666' }]}>
-          Bulunduğun şehri seçerek devam et
+          {t('selectCitySub')}
         </Text>
       </View>
 
@@ -164,7 +167,7 @@ export default function CityScreen() {
         <Ionicons name="search" size={20} color={isDark ? '#ccc' : '#666'} />
         <TextInput
           style={[styles.searchInput, { color: isDark ? '#fff' : '#000' }]}
-          placeholder="Şehir ara..."
+          placeholder={t('searchCity')}
           placeholderTextColor={isDark ? '#666' : '#999'}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -199,18 +202,16 @@ export default function CityScreen() {
 
       <View style={styles.footer}>
         <Text style={[styles.disclaimer, { color: isDark ? '#ccc' : '#666' }]}>
-          Uygulamadaki tüm vakit bilgileri, Diyanet İşleri Başkanlığı tarafından
-          sağlanan resmi verilere dayanmaktadır
+          {t('diyanetWarning')}
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   centered: {
     justifyContent: 'center',

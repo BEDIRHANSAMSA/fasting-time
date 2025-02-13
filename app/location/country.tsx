@@ -8,13 +8,14 @@ import {
   TextInput,
   Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
-import { useLanguage } from '../../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { countries } from '../../constants/countries';
-import { getFlagEmoji } from '../../utils/string';
+import { getFlagEmoji, toTitleCaseUTF8 } from '../../utils/string';
 import * as Location from 'expo-location';
 import { useLocation } from '../../context/LocationContext';
 import { usePrayerTimes } from '../../context/PrayerTimesContext';
@@ -30,7 +31,7 @@ export default function CountryScreen() {
 
   const navigation = useNavigation();
   const { isDark } = useTheme();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredCountries = countries.filter((country) =>
@@ -55,19 +56,31 @@ export default function CountryScreen() {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
+      console.log(addressInfo);
 
-      if (!addressInfo || !addressInfo.city || !addressInfo.region) {
+      if (!addressInfo || !addressInfo.country || !addressInfo.region) {
         throw new Error('Could not determine location');
       }
 
-      // First, get cities in Turkey (since our API is Turkey-specific)
-      const turkeyId = '2'; // Turkey's ID in our countries list
-      const citiesResponse = await fetch(
-        `https://ezanvakti.emushaf.net/sehirler/${turkeyId}`
+      // Find the matching city
+      const detectedCountry = addressInfo.country.toLowerCase();
+      const country = countries.find(
+        (c) =>
+          c.name.toLowerCase().includes(detectedCountry) ||
+          c.name.toLowerCase().includes(detectedCountry)
       );
+
+      if (!country) {
+        throw new Error('City not found');
+      }
+
+      const citiesResponse = await fetch(
+        `https://ezanvakti.emushaf.net/sehirler/${country.id}`
+      );
+
       const cities: City[] = await citiesResponse.json();
 
-      // Find the matching city
+      console.log(addressInfo);
       const detectedCity = addressInfo.region.toLowerCase();
       const city = cities.find(
         (c) =>
@@ -127,10 +140,9 @@ export default function CountryScreen() {
       };
 
       if (!district) {
-        var message = t('locationConfirmCityMessage').replace(
-          '{city}',
-          city.SehirAdi
-        );
+        var message = t('locationConfirmCityMessage')
+          .replace('{city}', toTitleCaseUTF8(city.SehirAdi))
+          .replace('{country}', country.name);
 
         Alert.alert(t('locationDetected'), message, [
           {
@@ -154,9 +166,18 @@ export default function CountryScreen() {
         ]);
         return;
       } else {
-        var message = t('locationConfirmMessage')
-          .replace('{district}', district.IlceAdi)
-          .replace('{city}', city.SehirAdi);
+        var messsage;
+
+        if (district.IlceAdi == city.SehirAdi) {
+          message = t('locationConfirmCityMessage')
+            .replace('{city}', toTitleCaseUTF8(city.SehirAdi))
+            .replace('{country}', country.name);
+        } else {
+          message = t('locationConfirmMessage')
+            .replace('{district}', toTitleCaseUTF8(district.IlceAdi))
+            .replace('{city}', toTitleCaseUTF8(city.SehirAdi))
+            .replace('{country}', country.name);
+        }
 
         // Ask user to confirm the detected location
         Alert.alert(t('locationDetected'), message, [
@@ -193,7 +214,7 @@ export default function CountryScreen() {
   };
 
   return (
-    <View
+    <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
     >
       <View style={styles.header}>
@@ -252,18 +273,16 @@ export default function CountryScreen() {
 
       <View style={styles.footer}>
         <Text style={[styles.disclaimer, { color: isDark ? '#ccc' : '#666' }]}>
-          Uygulamadaki tüm vakit bilgileri, Diyanet İşleri Başkanlığı tarafından
-          sağlanan resmi verilere dayanmaktadır
+          {t('diyanetWarning')}
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   header: {
     padding: 20,

@@ -1,5 +1,11 @@
 import { Stack, useRouter } from 'expo-router';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -8,39 +14,41 @@ export default function NotFoundScreen() {
   const router = useRouter();
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
+    >
       <Stack.Screen options={{ headerShown: false }} />
-      
-      <Ionicons 
-        name="alert-circle-outline" 
-        size={64} 
-        color={isDark ? '#fff' : '#000'} 
+
+      <Ionicons
+        name="alert-circle-outline"
+        size={64}
+        color={isDark ? '#fff' : '#000'}
         style={styles.icon}
       />
-      
+
       <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>
         Oops! Page Not Found
       </Text>
-      
+
       <Text style={[styles.subtitle, { color: isDark ? '#ccc' : '#666' }]}>
         The screen you're looking for doesn't exist.
       </Text>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: isDark ? '#fff' : '#000' }]}
         onPress={() => router.replace('/')}
       >
-        <Ionicons 
-          name="home-outline" 
-          size={20} 
-          color={isDark ? '#000' : '#fff'} 
+        <Ionicons
+          name="home-outline"
+          size={20}
+          color={isDark ? '#000' : '#fff'}
           style={styles.buttonIcon}
         />
         <Text style={[styles.buttonText, { color: isDark ? '#000' : '#fff' }]}>
           Go to Home Screen
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,9 +1,13 @@
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
@@ -11,6 +15,35 @@ import { useLocation } from '../context/LocationContext';
 import { usePrayerTimes } from '../context/PrayerTimesContext';
 import { Ionicons } from '@expo/vector-icons';
 import { toTitleCaseUTF8 } from '../utils/string';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import locale_en from 'dayjs/locale/en';
+import locale_tr from 'dayjs/locale/tr';
+import { useTranslation } from 'react-i18next';
+import updateLocale from 'dayjs/plugin/updateLocale';
+import durationPlugin from 'dayjs/plugin/duration'; // Plugin'i ekle
+
+dayjs.extend(updateLocale);
+dayjs.extend(relativeTime);
+dayjs.extend(durationPlugin);
+
+// Yeni threshold'ları tanımlıyoruz
+const thresholds = [
+  { l: 's', r: 59, d: 'second' }, // 59 saniyeye kadar "x saniye önce" göster
+  { l: 'm', r: 1 }, // 1 dakikaya kadar "bir dakika önce"
+  { l: 'mm', r: 59, d: 'minute' }, // 59 dakikaya kadar "x dakika önce"
+  { l: 'h', r: 1 }, // 1 saate kadar "bir saat önce"
+  { l: 'hh', r: 23, d: 'hour' }, // 23 saate kadar "x saat önce"
+  { l: 'd', r: 1 }, // 1 güne kadar "dün"
+  { l: 'dd', r: 29, d: 'day' }, // 29 güne kadar "x gün önce"
+  { l: 'M', r: 1 }, // 1 aya kadar "geçen ay"
+  { l: 'MM', r: 11, d: 'month' }, // 11 aya kadar "x ay önce"
+  { l: 'y', r: 1 }, // 1 yıla kadar "geçen yıl"
+  { l: 'yy', d: 'year' }, // Daha büyük zamanlar için "x yıl önce"
+];
+
+// Eşikleri ayarla
+dayjs.extend(relativeTime, { thresholds });
 
 function getFlagEmoji(countryCode: string) {
   const codePoints = countryCode
@@ -20,11 +53,222 @@ function getFlagEmoji(countryCode: string) {
   return String.fromCodePoint(...codePoints);
 }
 
+function calculateRemainingTime(
+  prayerTime: string,
+  lang: string,
+  isTomorrow = false
+) {
+  const [hours, minutes] = prayerTime.split(':').map(Number);
+  const prayerDate = new Date();
+  if (isTomorrow) {
+    prayerDate.setDate(prayerDate.getDate() + 1);
+  }
+
+  prayerDate.setHours(hours, minutes, 0, 0);
+
+  return dayjs(prayerDate)
+    .locale(lang === 'tr' ? locale_tr : locale_en)
+    .fromNow(true);
+}
+
+const Header = ({ isDark, onSettingsPress }: any) => (
+  <View style={styles.header}>
+    <TouchableOpacity style={styles.settingsButton} onPress={onSettingsPress}>
+      <Ionicons
+        name="settings-outline"
+        size={24}
+        color={isDark ? '#fff' : '#000'}
+      />
+    </TouchableOpacity>
+  </View>
+);
+
+const LocationInfo = ({ location, isDark }: any) => (
+  <View
+    style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}
+  >
+    <View style={styles.locationHeader}>
+      <Text style={styles.flag}>{getFlagEmoji(location.country.code)}</Text>
+      <View>
+        <Text
+          style={[styles.locationTitle, { color: isDark ? '#fff' : '#000' }]}
+        >
+          {toTitleCaseUTF8(location.district.name)}
+        </Text>
+        <Text
+          style={[styles.locationSubtitle, { color: isDark ? '#ccc' : '#666' }]}
+        >
+          {toTitleCaseUTF8(location.city.name)}, {location.country.name}
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+const PrayerTimes = ({ todaysPrayers, isDark }: any) => (
+  <SafeAreaView
+    style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}
+  >
+    <View style={styles.prayerHeader}>
+      <Text style={[styles.prayerDate, { color: isDark ? '#fff' : '#000' }]}>
+        {todaysPrayers.MiladiTarihUzun}
+      </Text>
+      <Text style={[styles.hijriDate, { color: isDark ? '#ccc' : '#666' }]}>
+        {todaysPrayers.HicriTarihUzun}
+      </Text>
+    </View>
+
+    <View style={styles.prayerTimesGrid}>
+      <PrayerTimeCard
+        icon="sunny-outline"
+        name="İmsak"
+        time={todaysPrayers.Imsak}
+        isDark={isDark}
+      />
+      <PrayerTimeCard
+        icon="partly-sunny-outline"
+        name="Güneş"
+        time={todaysPrayers.Gunes}
+        isDark={isDark}
+      />
+      <PrayerTimeCard
+        icon="sunny"
+        name="Öğle"
+        time={todaysPrayers.Ogle}
+        isDark={isDark}
+      />
+      <PrayerTimeCard
+        icon="partly-sunny"
+        name="İkindi"
+        time={todaysPrayers.Ikindi}
+        isDark={isDark}
+      />
+      <PrayerTimeCard
+        icon="cloudy-night-outline"
+        name="Akşam"
+        time={todaysPrayers.Aksam}
+        isDark={isDark}
+      />
+      <PrayerTimeCard
+        icon="moon-outline"
+        name="Yatsı"
+        time={todaysPrayers.Yatsi}
+        isDark={isDark}
+      />
+    </View>
+  </SafeAreaView>
+);
+
+const PrayerTimeCard = ({ icon, name, time, isDark }: any) => (
+  <View style={styles.prayerTimeItem}>
+    <View
+      style={[
+        styles.prayerTimeCard,
+        { backgroundColor: isDark ? '#333' : '#fff' },
+      ]}
+    >
+      <Ionicons name={icon} size={24} color={isDark ? '#fff' : '#000'} />
+      <Text style={[styles.prayerName, { color: isDark ? '#fff' : '#000' }]}>
+        {name}
+      </Text>
+      <Text style={[styles.prayerTime, { color: isDark ? '#fff' : '#000' }]}>
+        {time}
+      </Text>
+    </View>
+  </View>
+);
+
+const RemainingTimeCard = ({
+  prayerTimes,
+  todaysPrayers,
+  today,
+  i18n,
+  t,
+  isDark,
+}: any) => {
+  const [remainingTime, setRemainingTime] = useState<string | null>(null);
+  const [remainingTitle, setRemainingTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const updateCountdown = () => {
+      if (!todaysPrayers || !prayerTimes) return;
+
+      const now = dayjs();
+      let targetTime: dayjs.Dayjs;
+
+      // Aksam vaktini al
+      const [hours, minutes] = todaysPrayers.Aksam.split(':').map(Number);
+      const aksamTime = dayjs(today).hour(hours).minute(minutes).second(0);
+
+      if (now.isAfter(aksamTime)) {
+        // Eğer Aksam geçtiyse, ertesi günün İmsak vaktine geç
+        const tomorrow = dayjs(today).add(1, 'day');
+        const tomorrowPrayers = prayerTimes.find(
+          (time: any) =>
+            time.MiladiTarihUzunIso8601.split('T')[0] ===
+            tomorrow.format('YYYY-MM-DD')
+        );
+
+        if (tomorrowPrayers) {
+          const [imsakHours, imsakMinutes] =
+            tomorrowPrayers.Imsak.split(':').map(Number);
+          targetTime = tomorrow.hour(imsakHours).minute(imsakMinutes).second(0);
+
+          setRemainingTitle(t('remainingTimeToFajr'));
+        } else {
+          return;
+        }
+      } else {
+        targetTime = aksamTime;
+        setRemainingTitle(t('remainingTimeToMaghrib'));
+      }
+
+      const timeDiff = targetTime.diff(now);
+      setRemainingTime(formatTime(timeDiff));
+    };
+
+    updateCountdown();
+    interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [todaysPrayers, prayerTimes, today, i18n.language, t]);
+
+  return (
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+      ]}
+    >
+      <Text style={[styles.prayerName, { color: isDark ? '#fff' : '#000' }]}>
+        {remainingTitle}
+      </Text>
+      <Text style={[styles.prayerTime, { color: isDark ? '#fff' : '#000' }]}>
+        {remainingTime}
+      </Text>
+    </View>
+  );
+};
+
+const formatTime = (milliseconds: number) => {
+  const timeDuration = dayjs.duration(milliseconds);
+  return `${String(timeDuration.hours()).padStart(2, '0')}:${String(
+    timeDuration.minutes()
+  ).padStart(2, '0')}:${String(timeDuration.seconds()).padStart(2, '0')}`;
+};
+
 export default function DashboardScreen() {
   const { isDark } = useTheme();
   const { location } = useLocation();
   const { prayerTimes, loading, error } = usePrayerTimes();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   if (!location) {
     return <Redirect href="/onboarding" />;
@@ -35,61 +279,17 @@ export default function DashboardScreen() {
     (time) => time.MiladiTarihUzunIso8601.split('T')[0] === today
   );
 
-  console.log(today);
-
-  console.log(todaysPrayers);
-
   return (
-    <View
+    <SafeAreaView
       style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
     >
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: isDark ? '#fff' : '#000' }]}>
-          Dashboard
-        </Text>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => router.push('/settings')}
-        >
-          <Ionicons
-            name="settings-outline"
-            size={24}
-            color={isDark ? '#fff' : '#000'}
-          />
-        </TouchableOpacity>
-      </View>
+      <Header
+        isDark={isDark}
+        onSettingsPress={() => router.push('/settings')}
+      />
 
-      <View style={styles.content}>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
-          ]}
-        >
-          <View style={styles.locationHeader}>
-            <Text style={styles.flag}>
-              {getFlagEmoji(location.country.code)}
-            </Text>
-            <View>
-              <Text
-                style={[
-                  styles.locationTitle,
-                  { color: isDark ? '#fff' : '#000' },
-                ]}
-              >
-                {toTitleCaseUTF8(location.district.name)}
-              </Text>
-              <Text
-                style={[
-                  styles.locationSubtitle,
-                  { color: isDark ? '#ccc' : '#666' },
-                ]}
-              >
-                {toTitleCaseUTF8(location.city.name)}, {location.country.name}
-              </Text>
-            </View>
-          </View>
-        </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <LocationInfo location={location} isDark={isDark} />
 
         {loading ? (
           <View
@@ -118,216 +318,21 @@ export default function DashboardScreen() {
             </Text>
           </View>
         ) : todaysPrayers ? (
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
-            ]}
-          >
-            <View style={styles.prayerHeader}>
-              <Text
-                style={[styles.prayerDate, { color: isDark ? '#fff' : '#000' }]}
-              >
-                {todaysPrayers.MiladiTarihUzun}
-              </Text>
-              <Text
-                style={[styles.hijriDate, { color: isDark ? '#ccc' : '#666' }]}
-              >
-                {todaysPrayers.HicriTarihUzun}
-              </Text>
-            </View>
+          <>
+            <RemainingTimeCard
+              prayerTimes={prayerTimes}
+              todaysPrayers={todaysPrayers}
+              today={today}
+              i18n={i18n}
+              t={t}
+              isDark={isDark}
+            />
 
-            <View style={styles.prayerTimesGrid}>
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="sunny-outline"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    İmsak
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Imsak}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="partly-sunny-outline"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    Güneş
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Gunes}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="sunny"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    Öğle
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Ogle}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="partly-sunny"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    İkindi
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Ikindi}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="cloudy-night-outline"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    Akşam
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Aksam}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.prayerTimeItem}>
-                <View
-                  style={[
-                    styles.prayerTimeCard,
-                    { backgroundColor: isDark ? '#333' : '#fff' },
-                  ]}
-                >
-                  <Ionicons
-                    name="moon-outline"
-                    size={24}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                  <Text
-                    style={[
-                      styles.prayerName,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    Yatsı
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerTime,
-                      { color: isDark ? '#fff' : '#000' },
-                    ]}
-                  >
-                    {todaysPrayers.Yatsi}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
+            <PrayerTimes todaysPrayers={todaysPrayers} isDark={isDark} />
+          </>
         ) : null}
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -336,12 +341,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   headerTitle: {
     fontSize: 32,
@@ -355,7 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     gap: 20,
   },

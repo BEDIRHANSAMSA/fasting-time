@@ -1,7 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  SafeAreaView,
+} from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { toTitleCaseUTF8, getFlagEmoji } from '../utils/string';
@@ -9,7 +17,7 @@ import { toTitleCaseUTF8, getFlagEmoji } from '../utils/string';
 export default function SettingsScreen() {
   const { isDark, setTheme } = useTheme();
   const { location, clearLocation } = useLocation();
-  const { language, setLanguage, t } = useLanguage();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   const toggleTheme = () => {
@@ -22,65 +30,104 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons 
-            name="chevron-back" 
-            size={24} 
-            color={isDark ? '#fff' : '#000'} 
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color={isDark ? '#fff' : '#000'}
           />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: isDark ? '#fff' : '#000' }]}>
-          {t('settings')}
-        </Text>
       </View>
 
       <View style={styles.content}>
-        <View style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
+          ]}
+        >
+          <Text
+            style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}
+          >
             {t('language')}
           </Text>
-          
+
           <TouchableOpacity
             style={[
               styles.languageButton,
-              { backgroundColor: language === 'tr' ? (isDark ? '#333' : '#e5e5e5') : 'transparent' }
+              {
+                backgroundColor:
+                  i18n.language === 'tr'
+                    ? isDark
+                      ? '#333'
+                      : '#e5e5e5'
+                    : 'transparent',
+              },
             ]}
-            onPress={() => setLanguage('tr')}
+            onPress={() => i18n.changeLanguage('tr')}
           >
-            <Text style={[styles.languageText, { color: isDark ? '#fff' : '#000' }]}>
+            <Text
+              style={[styles.languageText, { color: isDark ? '#fff' : '#000' }]}
+            >
               {t('turkish')}
             </Text>
-            {language === 'tr' && (
-              <Ionicons name="checkmark" size={20} color={isDark ? '#fff' : '#000'} />
+            {i18n.language === 'tr' && (
+              <Ionicons
+                name="checkmark"
+                size={20}
+                color={isDark ? '#fff' : '#000'}
+              />
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.languageButton,
-              { backgroundColor: language === 'en' ? (isDark ? '#333' : '#e5e5e5') : 'transparent' }
+              {
+                backgroundColor:
+                  i18n.language === 'en'
+                    ? isDark
+                      ? '#333'
+                      : '#e5e5e5'
+                    : 'transparent',
+              },
             ]}
-            onPress={() => setLanguage('en')}
+            onPress={() => i18n.changeLanguage('en')}
           >
-            <Text style={[styles.languageText, { color: isDark ? '#fff' : '#000' }]}>
+            <Text
+              style={[styles.languageText, { color: isDark ? '#fff' : '#000' }]}
+            >
               {t('english')}
             </Text>
-            {language === 'en' && (
-              <Ionicons name="checkmark" size={20} color={isDark ? '#fff' : '#000'} />
+            {i18n.language === 'en' && (
+              <Ionicons
+                name="checkmark"
+                size={20}
+                color={isDark ? '#fff' : '#000'}
+              />
             )}
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
+          ]}
+        >
+          <Text
+            style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}
+          >
             {t('location')}
           </Text>
-          
+
           {location && (
             <View style={styles.locationInfo}>
               <View style={styles.locationHeader}>
@@ -88,11 +135,22 @@ export default function SettingsScreen() {
                   {getFlagEmoji(location.country.code)}
                 </Text>
                 <View>
-                  <Text style={[styles.locationText, { color: isDark ? '#fff' : '#000' }]}>
+                  <Text
+                    style={[
+                      styles.locationText,
+                      { color: isDark ? '#fff' : '#000' },
+                    ]}
+                  >
                     {location.country.name}
                   </Text>
-                  <Text style={[styles.locationSubtext, { color: isDark ? '#ccc' : '#666' }]}>
-                    {toTitleCaseUTF8(location.city.name)}, {toTitleCaseUTF8(location.district.name)}
+                  <Text
+                    style={[
+                      styles.locationSubtext,
+                      { color: isDark ? '#ccc' : '#666' },
+                    ]}
+                  >
+                    {toTitleCaseUTF8(location.city.name)},{' '}
+                    {toTitleCaseUTF8(location.district.name)}
                   </Text>
                 </View>
               </View>
@@ -100,48 +158,65 @@ export default function SettingsScreen() {
           )}
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: isDark ? '#333' : '#e5e5e5' }]}
+            style={[
+              styles.button,
+              { backgroundColor: isDark ? '#333' : '#e5e5e5' },
+            ]}
             onPress={handleChangeLocation}
           >
-            <Ionicons 
-              name="location-outline" 
-              size={20} 
-              color={isDark ? '#fff' : '#000'} 
-              style={styles.buttonIcon} 
+            <Ionicons
+              name="location-outline"
+              size={20}
+              color={isDark ? '#fff' : '#000'}
+              style={styles.buttonIcon}
             />
-            <Text style={[styles.buttonText, { color: isDark ? '#fff' : '#000' }]}>
+            <Text
+              style={[styles.buttonText, { color: isDark ? '#fff' : '#000' }]}
+            >
               {t('changeLocation')}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' },
+          ]}
+        >
+          <Text
+            style={[styles.sectionTitle, { color: isDark ? '#fff' : '#000' }]}
+          >
             {t('appearance')}
           </Text>
-          
+
           <View style={styles.settingRow}>
             <View style={styles.settingLabelContainer}>
-              <Ionicons 
-                name="moon-outline" 
-                size={20} 
-                color={isDark ? '#fff' : '#000'} 
-                style={styles.settingIcon} 
+              <Ionicons
+                name="moon-outline"
+                size={20}
+                color={isDark ? '#fff' : '#000'}
+                style={styles.settingIcon}
               />
-              <Text style={[styles.settingLabel, { color: isDark ? '#fff' : '#000' }]}>
+              <Text
+                style={[
+                  styles.settingLabel,
+                  { color: isDark ? '#fff' : '#000' },
+                ]}
+              >
                 {t('darkMode')}
               </Text>
             </View>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={isDark ? '#f5dd4b' : '#f4f3f4'}
+              trackColor={{ false: '#f5dd4b', true: '#f5dd4b' }}
+              thumbColor={isDark ? 'white' : 'white'}
             />
           </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -150,7 +225,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
     flexDirection: 'row',
