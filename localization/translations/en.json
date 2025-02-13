@@ -43,5 +43,12 @@
   "remainingTimeToFajr": "Time left until Fajr",
   "remainingTimeToMaghrib": "Time left until Magrib",
 
+  "fajr": "Fajr",
+  "sun": "Sun",
+  "dhuhr": "Dhuhr",
+  "asr": "Asr",
+  "maghrib": "Maghrib",
+  "isha": "Isha",
+
   "diyanetWarning": "All time information in the application is based on official data provided by the Presidency of Religious Affairs."
 }

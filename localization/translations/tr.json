@@ -44,5 +44,12 @@
   "remainingTimeToFajr": "İmsak vaktine kalan",
   "remainingTimeToMaghrib": "Akşam vaktine kalan",
 
+  "fajr": "İmsak",
+  "sun": "Güneş",
+  "dhuhr": "Öğle",
+  "asr": "İkindi",
+  "maghrib": "Akşam",
+  "isha": "Yatsı",
+
   "diyanetWarning": "Uygulamadaki tüm vakit bilgileri, Diyanet İşleri Başkanlığı tarafından sağlanan resmi verilere dayanmaktadır"
 }

@@ -105,13 +105,15 @@ const LocationInfo = ({ location, isDark }: any) => (
   </View>
 );
 
-const PrayerTimes = ({ todaysPrayers, isDark }: any) => (
+const PrayerTimes = ({ t, lang, todaysPrayers, isDark }: any) => (
   <SafeAreaView
     style={[styles.card, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}
   >
     <View style={styles.prayerHeader}>
       <Text style={[styles.prayerDate, { color: isDark ? '#fff' : '#000' }]}>
-        {todaysPrayers.MiladiTarihUzun}
+        {dayjs()
+          .locale(lang === 'tr' ? locale_tr : locale_en)
+          .format('DD MMMM YYYY dddd')}
       </Text>
       <Text style={[styles.hijriDate, { color: isDark ? '#ccc' : '#666' }]}>
         {todaysPrayers.HicriTarihUzun}
@@ -121,37 +123,37 @@ const PrayerTimes = ({ todaysPrayers, isDark }: any) => (
     <View style={styles.prayerTimesGrid}>
       <PrayerTimeCard
         icon="sunny-outline"
-        name="İmsak"
+        name={t('fajr')}
         time={todaysPrayers.Imsak}
         isDark={isDark}
       />
       <PrayerTimeCard
         icon="partly-sunny-outline"
-        name="Güneş"
+        name={t('sun')}
         time={todaysPrayers.Gunes}
         isDark={isDark}
       />
       <PrayerTimeCard
         icon="sunny"
-        name="Öğle"
+        name={t('dhuhr')}
         time={todaysPrayers.Ogle}
         isDark={isDark}
       />
       <PrayerTimeCard
         icon="partly-sunny"
-        name="İkindi"
+        name={t('asr')}
         time={todaysPrayers.Ikindi}
         isDark={isDark}
       />
       <PrayerTimeCard
         icon="cloudy-night-outline"
-        name="Akşam"
+        name={t('maghrib')}
         time={todaysPrayers.Aksam}
         isDark={isDark}
       />
       <PrayerTimeCard
         icon="moon-outline"
-        name="Yatsı"
+        name={t('isha')}
         time={todaysPrayers.Yatsi}
         isDark={isDark}
       />
@@ -328,7 +330,12 @@ export default function DashboardScreen() {
               isDark={isDark}
             />
 
-            <PrayerTimes todaysPrayers={todaysPrayers} isDark={isDark} />
+            <PrayerTimes
+              t={t}
+              lang={i18n.language}
+              todaysPrayers={todaysPrayers}
+              isDark={isDark}
+            />
           </>
         ) : null}
       </ScrollView>
