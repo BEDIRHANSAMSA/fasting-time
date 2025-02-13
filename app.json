@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "fasting-time",
+    "slug": "fasting-time",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bedirhansamsa.fastingTime",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8129166d-fb5e-40c3-b82f-e7a73b61a2de"
+      }
+    },
+    "android": {
+      "package": "com.bedirhansamsa.fastingTime"
+    }
+  }
+}
