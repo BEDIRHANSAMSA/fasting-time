@@ -5,7 +5,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We need your location to detect your city automatically.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to detect your city automatically.</string>
 </dict>
