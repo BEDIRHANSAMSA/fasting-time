@@ -1,3 +1,0 @@
-android {
-    compileSdkVersion 33 // veya en güncel versiyon
-}
