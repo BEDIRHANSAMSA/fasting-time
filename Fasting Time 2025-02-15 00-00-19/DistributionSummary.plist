@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Fasting Time.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>15</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>07DDCF856C27316215077C266C3C63D5E819EDE2</string>
+				<key>dateExpires</key>
+				<string>14.02.2026</string>
+				<key>type</key>
+				<string>Cloud Managed Apple Distribution</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>834CLS9F3X.com.bedirhansamsa.Fasting-Time</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>834CLS9F3X</string>
+				<key>get-task-allow</key>
+				<false/>
+			</dict>
+			<key>name</key>
+			<string>Fasting Time.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>98f72faa-b202-4ff1-9d1c-e1e36045c46f</string>
+				<key>dateExpires</key>
+				<string>14.02.2026</string>
+				<key>name</key>
+				<string>iOS Team Ad Hoc Provisioning Profile: com.bedirhansamsa.Fasting-Time</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>834CLS9F3X</string>
+				<key>name</key>
+				<string>Bedirhan SAMSA</string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>
