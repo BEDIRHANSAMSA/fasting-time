@@ -42,12 +42,12 @@ struct PrayerTimesView: View {
                 // 🔹 En Yakın Namaz Vaktine Kalan Süre
                 VStack(spacing: 4) {
                     Text("\(nextPrayer) vaktine")
-                        .font(.title2)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     
                     Text(formatRemainingTime(remainingTime))
-                        .font(.subheadline)
+                        .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .monospacedDigit()
@@ -161,10 +161,10 @@ struct PrayerTimesView: View {
         DispatchQueue.main.async {
             let now = Date()
             
-            if let prayerTime = prayerTimesManager.prayerTimes.first(where: { formatIsoDate($0.gregorianLongIso) == formatIsoDateFromDate(selectedDate) }) {
+            if let prayerTime = prayerTimesManager.prayerTimes.first(where: { formatIsoDate($0.gregorianLongIso) == formatIsoDateFromDate(now) }) {
                 let times = [
                     ("İmsak", prayerTime.fajr, "İmsak"),
-                    ("Güneş", prayerTime.sunrise, "Güneş"),
+                    ("Güneş", prayerTime.sunrise, "Güneş"), 
                     ("Öğle", prayerTime.dhuhr, "Öğle"),
                     ("İkindi", prayerTime.asr, "İkindi"),
                     ("Akşam", prayerTime.maghrib, "Akşam"),
@@ -172,19 +172,33 @@ struct PrayerTimesView: View {
                 ]
                 
                 var previousPrayer: String = ""
+                var foundNextPrayer = false
                 
                 for (_, time, originalName) in times {
                     let prayerTime = getTimeFromString(time)
                     if prayerTime > now {
-                        nextPrayer = originalName // 🔥 Cuma günleri Öğle 🕌 yerine "Öğle" olarak tutulur
+                        nextPrayer = originalName
                         remainingTime = prayerTime.timeIntervalSince(now)
                         
                         withAnimation(.easeInOut(duration: 0.5)) {
-                            currentPrayer = previousPrayer // 🔥 Cuma günü de doğru çalışır
+                            currentPrayer = previousPrayer
                         }
+                        foundNextPrayer = true
                         break
                     }
                     previousPrayer = originalName
+                }
+                
+                if !foundNextPrayer {
+                    let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+                    if let tomorrowPrayer = prayerTimesManager.prayerTimes.first(where: { formatIsoDate($0.gregorianLongIso) == formatIsoDateFromDate(tomorrow) }) {
+                        nextPrayer = "İmsak"
+                        let prayerTime = Calendar.current.date(byAdding: .day, value: 1, to: getTimeFromString(tomorrowPrayer.fajr))!
+                        remainingTime = prayerTime.timeIntervalSince(now)
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            currentPrayer = "Yatsı"
+                        }
+                    }
                 }
             }
         }

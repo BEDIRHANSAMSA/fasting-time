@@ -2,16 +2,18 @@ import Foundation
 import WidgetKit
 
 class PrayerTimesManager: ObservableObject {
+    static let shared = PrayerTimesManager()
     @Published var prayerTimes: [PrayerTime] = []
     @Published var isLoading = false
     @Published var error: Error?
 
     private let prayerKey = "prayerTimes"
     private let dateKey = "prayerTimesLastUpdate"
-    private let appGroupID = "group.com.bedirhansamsa.prayerTime.data" // ✅ **Widget ile paylaşım için App Group ID**
+    private let appGroupID = "group.com.bedirhansamsa.prayerTime.data"
 
     init() {
-        self.prayerTimes = loadPrayerTimes() ?? [] // ✅ **Önce kaydedilmiş veriyi yükle**
+        self.prayerTimes = loadPrayerTimes() ?? []
+  
     }
 
     func fetchPrayerTimes(for districtId: String) async {
@@ -58,13 +60,10 @@ class PrayerTimesManager: ObservableObject {
             if let encoded = try? encoder.encode(times) {
                 defaults?.set(encoded, forKey: prayerKey)
                 defaults?.synchronize()
-
                 print("📥 Widget JSON Kaydedildi")
             }
             
             WidgetCenter.shared.reloadAllTimelines()
-
-            print("📁 Widget için JSON Kaydedildi)")
         } catch {
             print("❌ Veri kaydetme hatası: \(error.localizedDescription)")
         }
@@ -72,7 +71,6 @@ class PrayerTimesManager: ObservableObject {
     
     func clearPrayerTimes() {
         let defaults = UserDefaults(suiteName: appGroupID)
-
         defaults?.removeObject(forKey: prayerKey)
         prayerTimes = []
     }
@@ -82,7 +80,6 @@ class PrayerTimesManager: ObservableObject {
         let decoder = JSONDecoder()
 
         if let savedData = defaults?.data(forKey: prayerKey) {
-            print("📥 Widget JSON Okundu: \(String(data: savedData, encoding: .utf8) ?? "Boş veri")")
             do {
                 return try decoder.decode([PrayerTime].self, from: savedData)
             } catch {
@@ -92,7 +89,6 @@ class PrayerTimesManager: ObservableObject {
         return nil
     }
 
-    /// **🕰 Kayıtlı veri 1 aydan eski mi?**
     private func isDataValid() -> Bool {
         guard let savedDate = UserDefaults.standard.object(forKey: dateKey) as? Date else { return false }
         let oneMonthAgo = Calendar.current.date(byAdding: .month, value: -1, to: Date())!

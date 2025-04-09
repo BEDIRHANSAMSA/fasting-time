@@ -13,7 +13,7 @@ struct Prayerr_TimeApp: App {
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var prayerTimesManager = PrayerTimesManager()
-    
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
@@ -28,10 +28,17 @@ struct Prayerr_TimeApp: App {
                                 Label("Vakitler", systemImage: "house.fill")
                             }
                         
+                        DhikrmaticView()
+                            .tabItem {
+                                Label("Zikirmatik", systemImage: "repeat")
+                            }
+                        
                         SettingsView()
                             .tabItem {
                                 Label("Ayarlar", systemImage: "gearshape.fill")
                             }
+                    }.onAppear {
+                        // NotificationManager.shared.scheduleMaghribNotifications(prayerTimes: prayerTimesManager.prayerTimes)
                     }
 
                 }
